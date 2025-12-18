@@ -1,0 +1,977 @@
+{
+  "name": "Workflow 4, 5 and 6",
+  "nodes": [
+    {
+      "parameters": {},
+      "type": "n8n-nodes-base.merge",
+      "typeVersion": 3.2,
+      "position": [
+        832,
+        1472
+      ],
+      "id": "bda0ae0d-93f1-43b9-bccc-6cf788b78704",
+      "name": "Merge"
+    },
+    {
+      "parameters": {
+        "jsCode": "// Merge all JSON objects into one without explicit loops\nconst merged = Object.assign({}, ...items.map(item => item.json));\n\nreturn [{ json: merged }];\n"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        992,
+        1472
+      ],
+      "id": "5e130f8f-225d-44a2-9acb-e9e4e0b4ef4a",
+      "name": "Flatten done into one single Array"
+    },
+    {
+      "parameters": {
+        "select": "channel",
+        "channelId": {
+          "__rl": true,
+          "value": "={{ String($json.slack_channel_ID).trim() }}",
+          "mode": "id"
+        },
+        "text": "=:  🎉 Congratulations! Your project is complete. To access it, check your email — we’ve sent your invoice there. Once payment is made, your project will be ready for you.",
+        "otherOptions": {}
+      },
+      "type": "n8n-nodes-base.slack",
+      "typeVersion": 2.3,
+      "position": [
+        1232,
+        1280
+      ],
+      "id": "fceec006-47f4-4b26-9802-5fd7173d6522",
+      "name": "Sending Message that their project is completed",
+      "webhookId": "276116d0-453c-4b93-b17f-16429abf40e4"
+    },
+    {
+      "parameters": {
+        "sendTo": "={{ $json.query.contact_email }}",
+        "subject": "Project Completed! 🎉 Invoice & Next Steps Inside",
+        "emailType": "text",
+        "message": "=Hi {{ $json.query.client_name }},\n\nWe’re pleased to inform you that your project has been successfully completed. 🎉\n\nPlease find the invoice details below:\n\nPreview Online: [{{ $json.document.public_share_link }}]\n\nDownload PDF: [{{ $json.document.download_url }}]\n\nKindly review the invoice and proceed with payment at your earliest convenience. Once the payment is received, we will promptly deliver the final project files.\n\nThank you for choosing our service. We appreciate your business and look forward to working with you again in the future.\n\nBest regards,\nProject Manager",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.gmail",
+      "typeVersion": 2.1,
+      "position": [
+        1232,
+        1472
+      ],
+      "id": "f9d33b55-74b3-4d19-9a37-366157695c38",
+      "name": "Sending Invoice",
+      "webhookId": "e2a29ffe-07e2-41ed-87a4-abb4e55bf67f"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://api.pdfmonkey.io/api/v1/documents",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={\n  \"document_template_id\": \"02F892ED-BB98-4A4D-A53D-61FF2095C90A\",\n  \"payload\": {\n    \"client_name\": \"{{ $json.query.client_name }}\",\n    \"client_email\": \"{{ $json.query.client_email }}\",\n    \"address\": \"{{ $json.query.address }}\",\n    \"country\": \"{{ $json.query.country }}\",\n    \"zip_postal_code\": \"{{ $json.query.zip_postal_code }}\",\n    \"project_budget\": \"{{ $json.query.project_budget }}\",\n    \"vat_number\": \"{{ $json.query.vat_number }}\"\n  },\n  \"status\": \"pending\"\n}\n",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        160,
+        1600
+      ],
+      "id": "06f3b7d0-86b9-45e9-8a58-5a133b386899",
+      "name": "Sending Data to produce Invoice"
+    },
+    {
+      "parameters": {
+        "url": "https://api.pdfmonkey.io/api/v1/documents/33eaaff2-4dbf-411f-9790-1429e7f64720",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        352,
+        1600
+      ],
+      "id": "dbfed3ff-f4f1-4b2d-b6bb-cf331f8f0c4f",
+      "name": "Getting Invoice"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "60b6c935-5047-414e-afb0-b5d9ca2a9bea",
+              "name": "document.download_url",
+              "value": "={{ $json.document.download_url }}",
+              "type": "string"
+            },
+            {
+              "id": "6b504705-db03-41c0-b20e-dd30ca4103fe",
+              "name": "document.public_share_link",
+              "value": "={{ $json.document.public_share_link }}",
+              "type": "string"
+            },
+            {
+              "id": "7cae757f-e7c1-4d4c-b756-c67a58258d8a",
+              "name": "document.preview_url",
+              "value": "={{ $json.document.preview_url }}",
+              "type": "string"
+            },
+            {
+              "id": "4266416e-a8ee-401a-b2f0-bca0d4dd2ad5",
+              "name": "",
+              "value": "",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        544,
+        1600
+      ],
+      "id": "47426eef-caa5-497d-adba-2e6c882adc6c",
+      "name": "Getting documentation Links"
+    },
+    {
+      "parameters": {
+        "path": "94d180ab-7879-4c9f-bfe6-2b1c650183bf",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2.1,
+      "position": [
+        -208,
+        1456
+      ],
+      "id": "6b47b387-bb8c-48b5-830b-df36e46ed4bc",
+      "name": "Trigger when the Generate Invoice Button is pressed",
+      "webhookId": "94d180ab-7879-4c9f-bfe6-2b1c650183bf"
+    },
+    {
+      "parameters": {
+        "path": "1caf63d0-ba12-4b46-94b0-32f682ba5e00",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2.1,
+      "position": [
+        144,
+        2064
+      ],
+      "id": "d00bd78a-74d1-4642-a378-68df1c815455",
+      "name": "Trigger when the send feedback button is pressed",
+      "webhookId": "1caf63d0-ba12-4b46-94b0-32f682ba5e00"
+    },
+    {
+      "parameters": {
+        "sendTo": "={{ $json.query.client_email }}",
+        "subject": "Thank You – We'd Appreciate Your Feedback",
+        "emailType": "text",
+        "message": "=Hi {{ $json.query.client_name }},\n\nThank you once again for your trust in Tech Savory. We’re glad to have successfully completed and delivered your project.\n\nTo help us continue improving our services, we’d be grateful if you could take a moment to fill out this short feedback form:\n\n🔗 Feedback Form: https://form.typeform.com/to/tOvfcp61\n\nYour honest feedback helps us grow and serve you better in the future.\n\nWe truly appreciate your time!\n\nWarm regards,\nProject Manager\n",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.gmail",
+      "typeVersion": 2.1,
+      "position": [
+        448,
+        2064
+      ],
+      "id": "c64ea15b-2b3d-4fff-99a0-db81aa4788ab",
+      "name": "Sending feedback form",
+      "webhookId": "fbed934c-8c4b-48a9-95ee-3c7fe7b090b5"
+    },
+    {
+      "parameters": {
+        "formId": "tOvfcp61"
+      },
+      "type": "n8n-nodes-base.typeformTrigger",
+      "typeVersion": 1.1,
+      "position": [
+        -16,
+        2496
+      ],
+      "id": "3602b86d-2ef8-4705-b238-7549cfbf972d",
+      "name": "Trigger for Feedback Form",
+      "webhookId": "2e103538-d457-40e5-9ffd-18b1e28bcb11"
+    },
+    {
+      "parameters": {
+        "operation": "update",
+        "base": {
+          "__rl": true,
+          "value": "apphS6ToxyfpgZ1qh",
+          "mode": "list",
+          "cachedResultName": "Client Onboarding System",
+          "cachedResultUrl": "https://airtable.com/apphS6ToxyfpgZ1qh"
+        },
+        "table": {
+          "__rl": true,
+          "value": "tblPZ9YBNGjWy6HFb",
+          "mode": "list",
+          "cachedResultName": "All Projects List",
+          "cachedResultUrl": "https://airtable.com/apphS6ToxyfpgZ1qh/tblPZ9YBNGjWy6HFb"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "Email?": "={{ $json[\"Your Email?\"] }}",
+            "Feedback of User": "=Service Feedback:\n1. What you liked: {{ $json['How was the service provided by us? (What you liked about our service)'] }}\n\"2. Value provided: {{ $json['What value does our service provided to you?'] }} \n\"3. Suggestions: {{ $json['Any Improvement Suggestions?'] }}"
+          },
+          "matchingColumns": [
+            "Email?"
+          ],
+          "schema": [
+            {
+              "id": "id",
+              "displayName": "id",
+              "required": false,
+              "defaultMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": true,
+              "removed": true
+            },
+            {
+              "id": "Client - Project",
+              "displayName": "Client - Project",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": true
+            },
+            {
+              "id": "Project Name?",
+              "displayName": "Project Name?",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": true
+            },
+            {
+              "id": "Client Full Name?",
+              "displayName": "Client Full Name?",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": true
+            },
+            {
+              "id": "Role of the Contact Person?",
+              "displayName": "Role of the Contact Person?",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": true
+            },
+            {
+              "id": "Email?",
+              "displayName": "Email?",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "Company Name?",
+              "displayName": "Company Name?",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": true
+            },
+            {
+              "id": "Start Date of Project?",
+              "displayName": "Start Date of Project?",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "dateTime",
+              "readOnly": false,
+              "removed": true
+            },
+            {
+              "id": "Deadline of Project?",
+              "displayName": "Deadline of Project?",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "dateTime",
+              "readOnly": false,
+              "removed": true
+            },
+            {
+              "id": "Budget?",
+              "displayName": "Budget?",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "number",
+              "readOnly": false,
+              "removed": true
+            },
+            {
+              "id": "Currency Type",
+              "displayName": "Currency Type",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": true
+            },
+            {
+              "id": "Invoice Status?",
+              "displayName": "Invoice Status?",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "options",
+              "options": [
+                {
+                  "name": "Paid",
+                  "value": "Paid"
+                },
+                {
+                  "name": "Pending",
+                  "value": "Pending"
+                },
+                {
+                  "name": "Sent",
+                  "value": "Sent"
+                }
+              ],
+              "readOnly": false,
+              "removed": true
+            },
+            {
+              "id": "Invoice ID",
+              "displayName": "Invoice ID",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": true
+            },
+            {
+              "id": "Slack Channel Link",
+              "displayName": "Slack Channel Link",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": true
+            },
+            {
+              "id": "Drive Folder Link?",
+              "displayName": "Drive Folder Link?",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": true
+            },
+            {
+              "id": "Slack Channel ID",
+              "displayName": "Slack Channel ID",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": true
+            },
+            {
+              "id": "Project Status",
+              "displayName": "Project Status",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": true,
+              "removed": true
+            },
+            {
+              "id": "Phone No",
+              "displayName": "Phone No",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": true
+            },
+            {
+              "id": "VAT number",
+              "displayName": "VAT number",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": true
+            },
+            {
+              "id": "Project Objective?",
+              "displayName": "Project Objective?",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": true
+            },
+            {
+              "id": "Company Website",
+              "displayName": "Company Website",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": true
+            },
+            {
+              "id": "Invoice Account ID",
+              "displayName": "Invoice Account ID",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": true
+            },
+            {
+              "id": "is_in_workspace?",
+              "displayName": "is_in_workspace?",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "boolean",
+              "readOnly": false,
+              "removed": true
+            },
+            {
+              "id": "Slack Id",
+              "displayName": "Slack Id",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": true
+            },
+            {
+              "id": "Task Table",
+              "displayName": "Task Table",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "array",
+              "readOnly": false,
+              "removed": true
+            },
+            {
+              "id": "Total Task",
+              "displayName": "Total Task",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": true,
+              "removed": true
+            },
+            {
+              "id": "Completed Task",
+              "displayName": "Completed Task",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": true,
+              "removed": true
+            },
+            {
+              "id": "Task in Progress",
+              "displayName": "Task in Progress",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": true,
+              "removed": true
+            },
+            {
+              "id": "Project Percentage?",
+              "displayName": "Project Percentage?",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": true,
+              "removed": true
+            },
+            {
+              "id": "Progress Bar",
+              "displayName": "Progress Bar",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": true,
+              "removed": true
+            },
+            {
+              "id": "Last Update Sent",
+              "displayName": "Last Update Sent",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "dateTime",
+              "readOnly": false,
+              "removed": true
+            },
+            {
+              "id": "Update Ready",
+              "displayName": "Update Ready",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": true,
+              "removed": true
+            },
+            {
+              "id": "All Task Summary",
+              "displayName": "All Task Summary",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": true,
+              "removed": true
+            },
+            {
+              "id": "Address",
+              "displayName": "Address",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": true
+            },
+            {
+              "id": "City/Town",
+              "displayName": "City/Town",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": true
+            },
+            {
+              "id": "State/Province/Region",
+              "displayName": "State/Province/Region",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": true
+            },
+            {
+              "id": "Country",
+              "displayName": "Country",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": true
+            },
+            {
+              "id": "Zip/Postal Code",
+              "displayName": "Zip/Postal Code",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": true
+            },
+            {
+              "id": "Billing Email?",
+              "displayName": "Billing Email?",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": true
+            },
+            {
+              "id": "Invoice Address",
+              "displayName": "Invoice Address",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": true
+            },
+            {
+              "id": "Generate Invoice?",
+              "displayName": "Generate Invoice?",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": true,
+              "removed": true
+            },
+            {
+              "id": "Send Feedback Form",
+              "displayName": "Send Feedback Form",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": true,
+              "removed": true
+            },
+            {
+              "id": "Feedback of User",
+              "displayName": "Feedback of User",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.airtable",
+      "typeVersion": 2.1,
+      "position": [
+        336,
+        2496
+      ],
+      "id": "16779866-16b6-4aa2-b74a-7b684ec4f80e",
+      "name": "Update the Feedback and marked project as completed"
+    },
+    {
+      "parameters": {
+        "content": "# 💳 Workflow 4: Automated Invoice Generation via Airtable + PDFMonkey  \n\n## 🛠️ How the Invoice Trigger Works  \n\n## 🚀 Invoice Process  \n1. **Webhook Node**  \n   - Airtable checks the **Project Percentage** field.  \n   - If `= 100%` → **Generate Invoice button** is available.  \n   - When pressed, Airtable sends the project data to n8n via a **Webhook**.  \n   - Captures important project fields (Client name, Email, Project ID, Price, etc.).  \n\n2. **PDFMonkey - Create Invoice**  \n   - Use an **HTTP POST** request to PDFMonkey.  \n   - Send captured data from Airtable.  \n   - Include a variable `status: pending` to indicate invoice creation.  \n\n3. **PDFMonkey - Retrieve Invoice PDF**  \n   - Use an **HTTP GET** request with the document ID from the POST step.  \n   - Retrieve invoice file links:  \n     - 📥 Downloadable PDF URL  \n     - 🌐 Public share link  \n\n4. **Merge + Flatten**  \n   - Merge the invoice URLs with Airtable record data.  \n   - Flatten into a single array for clean mapping.  \n\n5. **Email Client**  \n   - Use **Gmail Node** to send the invoice PDF as an attachment.  \n   - Subject: “Your Project Invoice from [Company]”  \n   - Body: includes public invoice link + payment instructions.  \n\n6. **Slack Notification**  \n   - From the same flattened data, send a Slack message to the client’s private channel:  \n     - “✅ Your project is now **100% complete**. An invoice has been generated and sent to your email.”  ",
+        "height": 880,
+        "width": 2288
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "position": [
+        -720,
+        1088
+      ],
+      "typeVersion": 1,
+      "id": "6bf03897-af7e-4a8e-b2f4-9569f97eb8cd",
+      "name": "Sticky Note"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "ed7d0387-59bd-47f2-9c0b-731396c9bd90",
+              "name": "query.record_id",
+              "value": "={{ $json.query.record_id }}",
+              "type": "string"
+            },
+            {
+              "id": "247c0707-b65b-43c5-b4b2-c479df9d19be",
+              "name": "query.client_name",
+              "value": "={{ $json.query.client_name }}",
+              "type": "string"
+            },
+            {
+              "id": "9a8282bf-dc27-4ec6-a7b6-fdfd0c281bae",
+              "name": "query.client_email",
+              "value": "={{ $json.query.client_email }}",
+              "type": "string"
+            },
+            {
+              "id": "afd8fa65-3638-4944-b3e3-a396f9f8c7e4",
+              "name": "query.address",
+              "value": "={{ $json.query.address }}",
+              "type": "string"
+            },
+            {
+              "id": "1f0e5bd7-0cbc-4252-916c-d3d8459ac29b",
+              "name": "query.project_budget",
+              "value": "={{ $json.query.project_budget }}",
+              "type": "string"
+            },
+            {
+              "id": "1c6ed10c-02f1-4954-b1eb-466677e5a642",
+              "name": "query.currency_type",
+              "value": "={{ $json.query.currency_type }}",
+              "type": "string"
+            },
+            {
+              "id": "aa101c63-23c7-40ea-a37d-1e9be6e97c31",
+              "name": "query.vat_number",
+              "value": "={{ $json.query.vat_number }}",
+              "type": "string"
+            },
+            {
+              "id": "c596c0ba-17e1-4214-8549-6a3c7937772e",
+              "name": "query.zip_postal_code",
+              "value": "={{ $json.query.zip_postal_code }}",
+              "type": "string"
+            },
+            {
+              "id": "2a2bf755-08bc-423f-8e13-0d2e377ed3e0",
+              "name": "query.country",
+              "value": "={{ $json.query.country }}",
+              "type": "string"
+            },
+            {
+              "id": "614545fd-74ad-4d25-9f75-9bc03c2295fb",
+              "name": "query.contact_email",
+              "value": "={{ $json.query.contact_email }}",
+              "type": "string"
+            },
+            {
+              "id": "e68d8da6-d360-4521-8f54-e447ad825510",
+              "name": "slack_channel_ID",
+              "value": "={{ $json.query.slack_channel_id }}",
+              "type": "string"
+            },
+            {
+              "id": "44f06ea3-0589-4f28-a100-29c601083252",
+              "name": "slack_channel_link",
+              "value": "={{ $json.query.slack_channel_link }}",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        -16,
+        1456
+      ],
+      "id": "36aab163-5bee-4cd5-93c5-9986ac2464ab",
+      "name": "Extract Important Data"
+    },
+    {
+      "parameters": {
+        "content": "# 📩 Workflow 5: Send Feedback Form after Invoice Paid  \n\n## 🚀 Process  \n1. **Webhook Node**  \n   - In Airtable, once the **Invoice Status = Paid**, the **Send Feedback** button becomes active.  \n   - When pressed, Airtable triggers a **Webhook** in n8n. \n   - Webhook Captures client details from Airtable (Name, Email, Project ID).  \n\n2. **Send Feedback Email (Gmail Node)**  \n   - Subject: “We’d love your feedback on [Project Name]”  \n   - Body: Includes a link to the **Typeform feedback survey**.  \n   - Sent directly to the client’s email.  \n\n# 📝 Workflow 6: Process Feedback Submission via Typeform  \n\n\n## 🚀 Process  \n1. **Typeform Trigger Node**  \n    - A client submits the **Typeform feedback survey**.  \n    - The **Typeform Trigger Node** activates in n8n.  \n    - Captures feedback responses along with the client’s email.  \n\n2. **Airtable Lookup**  \n   - Find the corresponding record in Airtable using the client’s email.  \n\n3. **Update Airtable Record**  \n   - Save the feedback answers into the record.  \n   - Update project status:  \n     - `Project Status = Closed`  \n     - `Feedback = [Responses from Typeform]`  \n\n\n",
+        "height": 768,
+        "width": 2288
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "position": [
+        -816,
+        2000
+      ],
+      "typeVersion": 1,
+      "id": "a39e2cd6-c481-4086-8af6-e9f0cd858fad",
+      "name": "Sticky Note1"
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "Merge": {
+      "main": [
+        [
+          {
+            "node": "Flatten done into one single Array",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Flatten done into one single Array": {
+      "main": [
+        [
+          {
+            "node": "Sending Invoice",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Sending Message that their project is completed",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Sending Data to produce Invoice": {
+      "main": [
+        [
+          {
+            "node": "Getting Invoice",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Getting Invoice": {
+      "main": [
+        [
+          {
+            "node": "Getting documentation Links",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Getting documentation Links": {
+      "main": [
+        [
+          {
+            "node": "Merge",
+            "type": "main",
+            "index": 1
+          }
+        ]
+      ]
+    },
+    "Trigger when the Generate Invoice Button is pressed": {
+      "main": [
+        [
+          {
+            "node": "Extract Important Data",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Trigger when the send feedback button is pressed": {
+      "main": [
+        [
+          {
+            "node": "Sending feedback form",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Trigger for Feedback Form": {
+      "main": [
+        [
+          {
+            "node": "Update the Feedback and marked project as completed",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Extract Important Data": {
+      "main": [
+        [
+          {
+            "node": "Sending Data to produce Invoice",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Merge",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "versionId": "0806cb44-1573-472d-8c34-5d26156f9b43",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "533fe5175031be2920b57ac9a77dfa7c0297e32aee4cfa537612cab3b1e61491"
+  },
+  "id": "3WTDuPnyVurcEzOm",
+  "tags": []
+}

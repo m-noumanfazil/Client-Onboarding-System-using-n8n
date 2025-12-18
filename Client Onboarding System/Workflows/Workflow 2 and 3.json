@@ -1,0 +1,1845 @@
+{
+  "name": "Workflow 2 and 3",
+  "nodes": [
+    {
+      "parameters": {
+        "content": "# 👥 Workflow 2: Client Filtering & Slack Onboarding Workflow\n\n## This workflow ensures that **only new clients** are identified and onboarded properly by following these steps:\n\n# 1. Fetch Airtable Records\n- ## Retrieve all records where `Added_to_Channel = FALSE`.\n\n## 2. Loop Over Each Client\n- ## Process each client record individually for precise control.\n- ## Extract key information:\n  - ## Client name\n  - ## Email address\n  - ## Record ID\n  - ## Slack channel ID\n  - ## Slack channel Email\n\n# 3. Get Slack User ID\n- ## Use **Slack `users.lookupByEmail` API** with the client’s email.\n- ## Filter the API response to get a valid Slack ID.\n# 4. Loop and IF Logic Management\n- ## Send the output from both the set node where the slack id and is_in_workspace extracted and 'Extract record id, Slack channel id and link, email, client name1' set node\n  ## to the merge node.\n- ## Then we flatten all the combination down into one array using the code node and then we use the if which checks if that client exist in the worksapce or not.\n- ## If yes, then it will invite the user via slack api call converstaion.invite to ther private channel, post the welcome message \n  ## into the slack private channel for that client, update airtable variable add to their channel and send the message with the private channel link for them.\n- ## IF no, then  it wills end a remnider email to the client saying join the workapce so that we can add you to the private channel.",
+        "height": 1088,
+        "width": 4048
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "position": [
+        -3008,
+        -1536
+      ],
+      "typeVersion": 1,
+      "id": "446df895-6388-43b1-85e9-170481ac3594",
+      "name": "Sticky Note13"
+    },
+    {
+      "parameters": {
+        "rule": {
+          "interval": [
+            {}
+          ]
+        }
+      },
+      "type": "n8n-nodes-base.scheduleTrigger",
+      "typeVersion": 1.2,
+      "position": [
+        -2032,
+        -1408
+      ],
+      "id": "9dd787a0-cb5e-4f92-a789-0b0121716ea6",
+      "name": "Schedule Trigger1"
+    },
+    {
+      "parameters": {
+        "options": {}
+      },
+      "type": "n8n-nodes-base.splitInBatches",
+      "typeVersion": 3,
+      "position": [
+        -1616,
+        -1424
+      ],
+      "id": "78830ee5-d75c-40b8-a935-48e4121d2e85",
+      "name": "Loop Over Items1"
+    },
+    {
+      "parameters": {
+        "jsCode": "// Merge all JSON objects into one without explicit loops\nconst merged = Object.assign({}, ...items.map(item => item.json));\n\nreturn [{ json: merged }];\n"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -592,
+        -1408
+      ],
+      "id": "ebe05e5f-cccd-4676-aa84-23c7c0b48dc3",
+      "name": "Flatten done into one single Array4"
+    },
+    {
+      "parameters": {},
+      "type": "n8n-nodes-base.wait",
+      "typeVersion": 1.1,
+      "position": [
+        -288,
+        -1024
+      ],
+      "id": "0cb15f04-f903-4cb4-843f-51d351e5f5f8",
+      "name": "Wait",
+      "webhookId": "f28db941-e4a6-4910-9c6f-61be1c970a30"
+    },
+    {
+      "parameters": {
+        "operation": "search",
+        "base": {
+          "__rl": true,
+          "value": "apphS6ToxyfpgZ1qh",
+          "mode": "list",
+          "cachedResultName": "Client Onboarding System",
+          "cachedResultUrl": "https://airtable.com/apphS6ToxyfpgZ1qh"
+        },
+        "table": {
+          "__rl": true,
+          "value": "tblPZ9YBNGjWy6HFb",
+          "mode": "list",
+          "cachedResultName": "All Projects List",
+          "cachedResultUrl": "https://airtable.com/apphS6ToxyfpgZ1qh/tblPZ9YBNGjWy6HFb"
+        },
+        "filterByFormula": "={Add to their channel?} = FALSE()",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.airtable",
+      "typeVersion": 2.1,
+      "position": [
+        -1856,
+        -1408
+      ],
+      "id": "ae1e06f7-a499-478b-9982-ca015aff20ef",
+      "name": "Get only those records which aren't in their private channel1"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "ee00e620-7ebd-401d-84c4-aeddd319a442",
+              "name": "Record id",
+              "value": "={{ $json.id }}",
+              "type": "string"
+            },
+            {
+              "id": "2754e54c-6fa6-40db-9a65-9363846ee01d",
+              "name": "Slack Channel Link",
+              "value": "={{ $json[\"Slack Channel Link\"] }}",
+              "type": "string"
+            },
+            {
+              "id": "d8d93dc5-3011-43c9-8de2-ae11dfcb1142",
+              "name": "Slack Channel ID",
+              "value": "={{ $json[\"Slack Channel ID\"] }}",
+              "type": "string"
+            },
+            {
+              "id": "ccca63b7-85a3-4b53-bf9a-3ef0f9c6ac53",
+              "name": "Email?",
+              "value": "={{ $json[\"Email?\"] }}",
+              "type": "string"
+            },
+            {
+              "id": "412a5197-5000-4ff0-a4de-baa956851d0c",
+              "name": "Client Full Name?",
+              "value": "={{ $json[\"Client Full Name?\"] }}",
+              "type": "string"
+            },
+            {
+              "id": "e763c37d-3552-4381-aedb-11b484be1f42",
+              "name": "Billing Email?",
+              "value": "={{ $json[\"Billing Email?\"] }}",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        -1344,
+        -1408
+      ],
+      "id": "569130be-9e56-49ab-a57f-de3fd160d904",
+      "name": "Extract record id, Slack channel id and link, email, client name1"
+    },
+    {
+      "parameters": {
+        "url": "=https://slack.com/api/users.lookupByEmail?email={{ $json[\"Email?\"] }}",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        -1120,
+        -1520
+      ],
+      "id": "a8220f6b-484d-4295-ab22-44fa6320dca8",
+      "name": "Get the user Slack ID1"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "5f41e4bf-00db-4a4a-b02a-76bde1697fd4",
+              "name": "Slack ID",
+              "value": "={{ $json.user.id }}",
+              "type": "string"
+            },
+            {
+              "id": "f392661f-4ecb-4277-91df-1c78d904d1a8",
+              "name": "=is_in_workspace",
+              "value": "={{ $json.ok.toString() }}",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        -912,
+        -1536
+      ],
+      "id": "cc212efe-35f9-41b1-bcf1-a1b83cf008b1",
+      "name": "Extract Slack ID of User1"
+    },
+    {
+      "parameters": {},
+      "type": "n8n-nodes-base.merge",
+      "typeVersion": 3.2,
+      "position": [
+        -736,
+        -1408
+      ],
+      "id": "3508cc36-769a-4e40-a633-846d1bc5602f",
+      "name": "Merge5"
+    },
+    {
+      "parameters": {
+        "operation": "update",
+        "base": {
+          "__rl": true,
+          "value": "apphS6ToxyfpgZ1qh",
+          "mode": "list",
+          "cachedResultName": "Client Onboarding System",
+          "cachedResultUrl": "https://airtable.com/apphS6ToxyfpgZ1qh"
+        },
+        "table": {
+          "__rl": true,
+          "value": "tblPZ9YBNGjWy6HFb",
+          "mode": "list",
+          "cachedResultName": "All Projects List",
+          "cachedResultUrl": "https://airtable.com/apphS6ToxyfpgZ1qh/tblPZ9YBNGjWy6HFb"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "is_in_workspace?": true,
+            "Add to their channel?": true,
+            "id": "={{ $json[\"Record id\"] }}",
+            "Slack Id": "={{ $json[\"Slack ID\"] }}"
+          },
+          "matchingColumns": [
+            "id"
+          ],
+          "schema": [
+            {
+              "id": "id",
+              "displayName": "id",
+              "required": false,
+              "defaultMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": true,
+              "removed": false
+            },
+            {
+              "id": "Client - Project",
+              "displayName": "Client - Project",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": true
+            },
+            {
+              "id": "Project Name?",
+              "displayName": "Project Name?",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": true
+            },
+            {
+              "id": "Client Full Name?",
+              "displayName": "Client Full Name?",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": true
+            },
+            {
+              "id": "Role of the Contact Person?",
+              "displayName": "Role of the Contact Person?",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": true
+            },
+            {
+              "id": "Email?",
+              "displayName": "Email?",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": true
+            },
+            {
+              "id": "Company Name?",
+              "displayName": "Company Name?",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": true
+            },
+            {
+              "id": "Start Date of Project?",
+              "displayName": "Start Date of Project?",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "dateTime",
+              "readOnly": false,
+              "removed": true
+            },
+            {
+              "id": "Deadline of Project?",
+              "displayName": "Deadline of Project?",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "dateTime",
+              "readOnly": false,
+              "removed": true
+            },
+            {
+              "id": "Budget?",
+              "displayName": "Budget?",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "number",
+              "readOnly": false,
+              "removed": true
+            },
+            {
+              "id": "Currency Type",
+              "displayName": "Currency Type",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": true
+            },
+            {
+              "id": "Invoice Status?",
+              "displayName": "Invoice Status?",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "options",
+              "options": [
+                {
+                  "name": "Paid",
+                  "value": "Paid"
+                },
+                {
+                  "name": "Pending",
+                  "value": "Pending"
+                },
+                {
+                  "name": "Sent",
+                  "value": "Sent"
+                }
+              ],
+              "readOnly": false,
+              "removed": true
+            },
+            {
+              "id": "Invoice ID",
+              "displayName": "Invoice ID",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": true
+            },
+            {
+              "id": "Slack Channel Link",
+              "displayName": "Slack Channel Link",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": true
+            },
+            {
+              "id": "Drive Folder Link?",
+              "displayName": "Drive Folder Link?",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": true
+            },
+            {
+              "id": "Slack Channel ID",
+              "displayName": "Slack Channel ID",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": true
+            },
+            {
+              "id": "Project Status",
+              "displayName": "Project Status",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": true,
+              "removed": true
+            },
+            {
+              "id": "Phone No",
+              "displayName": "Phone No",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": true
+            },
+            {
+              "id": "VAT number",
+              "displayName": "VAT number",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": true
+            },
+            {
+              "id": "Project Objective?",
+              "displayName": "Project Objective?",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": true
+            },
+            {
+              "id": "Company Website",
+              "displayName": "Company Website",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": true
+            },
+            {
+              "id": "Invoice Account ID",
+              "displayName": "Invoice Account ID",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": true
+            },
+            {
+              "id": "is_in_workspace?",
+              "displayName": "is_in_workspace?",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "boolean",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "Slack Id",
+              "displayName": "Slack Id",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "Task Table",
+              "displayName": "Task Table",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "array",
+              "readOnly": false,
+              "removed": true
+            },
+            {
+              "id": "Total Task",
+              "displayName": "Total Task",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": true,
+              "removed": true
+            },
+            {
+              "id": "Completed Task",
+              "displayName": "Completed Task",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": true,
+              "removed": true
+            },
+            {
+              "id": "Task in Progress",
+              "displayName": "Task in Progress",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": true,
+              "removed": true
+            },
+            {
+              "id": "Project Percentage?",
+              "displayName": "Project Percentage?",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": true,
+              "removed": true
+            },
+            {
+              "id": "Progress Bar",
+              "displayName": "Progress Bar",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": true,
+              "removed": true
+            },
+            {
+              "id": "Last Update Sent",
+              "displayName": "Last Update Sent",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "dateTime",
+              "readOnly": false,
+              "removed": true
+            },
+            {
+              "id": "Update Ready",
+              "displayName": "Update Ready",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": true,
+              "removed": true
+            },
+            {
+              "id": "All Task Summary",
+              "displayName": "All Task Summary",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": true,
+              "removed": true
+            },
+            {
+              "id": "Address",
+              "displayName": "Address",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": true
+            },
+            {
+              "id": "City/Town",
+              "displayName": "City/Town",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": true
+            },
+            {
+              "id": "State/Province/Region",
+              "displayName": "State/Province/Region",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": true
+            },
+            {
+              "id": "Country",
+              "displayName": "Country",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": true
+            },
+            {
+              "id": "Zip/Postal Code",
+              "displayName": "Zip/Postal Code",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": true
+            },
+            {
+              "id": "Billing Email?",
+              "displayName": "Billing Email?",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": true
+            },
+            {
+              "id": "Invoice Address",
+              "displayName": "Invoice Address",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": true
+            },
+            {
+              "id": "Generate Invoice?",
+              "displayName": "Generate Invoice?",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": true,
+              "removed": true
+            },
+            {
+              "id": "Send Feedback Form",
+              "displayName": "Send Feedback Form",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": true,
+              "removed": true
+            },
+            {
+              "id": "Feedback of User",
+              "displayName": "Feedback of User",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": true
+            },
+            {
+              "id": "Add to their channel?",
+              "displayName": "Add to their channel?",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "boolean",
+              "readOnly": false,
+              "removed": false
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.airtable",
+      "typeVersion": 2.1,
+      "position": [
+        48,
+        -1024
+      ],
+      "id": "fba1469e-0584-4300-8151-59e7b7d85805",
+      "name": "Add Slack ID and flag add to the channel of the record1"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://slack.com/api/conversations.invite",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth",
+        "sendHeaders": true,
+        "specifyHeaders": "json",
+        "jsonHeaders": "{\n  \"Content-Type\": \"application/json\"\n}\n",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={\n  \"channel\": \"{{ $json[\"Slack Channel ID\"] }}\",\n  \"users\": \"{{ $json[\"Slack ID\"] }}\"\n}\n",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        48,
+        -1424
+      ],
+      "id": "09f7866a-d1f9-458e-b4e5-c2846b5884c3",
+      "name": "Add the Client To the Private Slack Channel1"
+    },
+    {
+      "parameters": {
+        "authentication": "oAuth2",
+        "select": "channel",
+        "channelId": {
+          "__rl": true,
+          "value": "={{ $json.channel.id }}",
+          "mode": "id"
+        },
+        "text": "=Hey there, welcome aboard! \n🎉 We’re super happy to have you on the team. \n\n🚀 This would be your Official Communication Medium with the owner of the project and I'll be keep updating you about the weekly progress of your project, share what you’re working on, and don’t hesitate to reach out if you need anything.\n\nLet’s build something awesome together, in shaa’ Allah ",
+        "otherOptions": {}
+      },
+      "type": "n8n-nodes-base.slack",
+      "typeVersion": 2.3,
+      "position": [
+        240,
+        -1424
+      ],
+      "id": "374d98ae-3b22-4d18-8245-ed85c3875e2a",
+      "name": "Post Welcome Message to Channel1",
+      "webhookId": "d5ee14f2-b1a9-41bb-b008-d827ee914128"
+    },
+    {
+      "parameters": {
+        "sendTo": "={{ $json[\"Email?\"] }}",
+        "subject": "Access Your Private Project Channel on Slack",
+        "emailType": "text",
+        "message": "=Hi {{ $json[\"Client Full Name?\"] }},\n\nHere’s the link to access your private Slack channel:\n🔗 Private Channel: {{ $json[\"Slack Channel Link\"] }}\n\nThis channel is your dedicated space for all project-related communication. Here's what you can expect:\n\nWeekly project updates will be shared here to keep you informed of progress.\n\nYou can ask your Project Manager any questions directly in this channel.\n\nOnce the project is complete, you’ll also receive a final confirmation and wrap-up message here.\n\nIf you have any trouble accessing the channel, please don’t hesitate to reach out.\n\n\nBest regards,\nProject Manager",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.gmail",
+      "typeVersion": 2.1,
+      "position": [
+        96,
+        -1200
+      ],
+      "id": "00842ced-4303-484f-a5b8-bcc8875364e6",
+      "name": "Email them their Private Channel Link1",
+      "webhookId": "2503e215-7006-4704-b4b9-0e9dfeb6389c"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "id": "90f2271a-43b3-4e86-a5b0-7ebf984b63d0",
+              "leftValue": "={{ $json.is_in_workspace }}",
+              "rightValue": "=false",
+              "operator": {
+                "type": "string",
+                "operation": "notEquals"
+              }
+            },
+            {
+              "id": "9ff3a2f6-d2a8-4855-b2fe-2eacb97aa5a6",
+              "leftValue": "={{ $json[\"Slack ID\"] }}",
+              "rightValue": "",
+              "operator": {
+                "type": "string",
+                "operation": "exists",
+                "singleValue": true
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [
+        -432,
+        -1408
+      ],
+      "id": "2f83ff22-c09c-428b-9edd-a298a42d328b",
+      "name": "Check if the user is already in the workspace or not1"
+    },
+    {
+      "parameters": {
+        "jsCode": "// Merge all JSON objects into one without explicit loops\nconst merged = Object.assign({}, ...items.map(item => item.json));\n\nreturn [{ json: merged }];\n"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        240,
+        -896
+      ],
+      "id": "a5c139c1-8e65-4b29-8221-98cd26920c3a",
+      "name": "Flatten done into one single Array5"
+    },
+    {
+      "parameters": {
+        "numberInputs": 3
+      },
+      "type": "n8n-nodes-base.merge",
+      "typeVersion": 3.2,
+      "position": [
+        832,
+        -912
+      ],
+      "id": "55e80cb1-825c-45cd-9cf4-dd5051e44a69",
+      "name": "Merge6"
+    },
+    {
+      "parameters": {
+        "sendTo": "={{ $json['Contact Email?'] }}",
+        "subject": "=Reminder 😪: Join Our Slack Workspace",
+        "emailType": "text",
+        "message": "=Hi {{ $json[\"Full Name?\"] }},\n\nWe noticed you haven’t joined our Slack workspace yet. 👀\nRemember, your dedicated private channel is already set up and waiting for you—it just needs you.\n\n🔗 Slack Workspace Invite\n{{ $json[\"Workspace Link:\"] }}\n\nOnce you click the link and join, we’ll add you to your channel for smooth project communication. We can then start the project right away.\n\nLooking forward to seeing you inside the workspace soon! 🚀\n\nBest regards,\n[Your Name]",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.gmail",
+      "typeVersion": 2.1,
+      "position": [
+        -464,
+        -1024
+      ],
+      "id": "82cf7e22-5bb9-4a87-aacd-552099471402",
+      "name": "Remind Client to join the workspace",
+      "webhookId": "8fd65734-d077-421b-aa45-8fe5a4bb5458"
+    },
+    {
+      "parameters": {
+        "content": "## ⏰ Schedule Trigger\n\n- ### You can use it according to your own interest. Since this works for all clients project in the Database so you can run this everyday.\n- ### The \"Search Records\" node returns all record from the *All Project List*",
+        "height": 384,
+        "width": 464,
+        "color": 4
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "position": [
+        -1712,
+        128
+      ],
+      "typeVersion": 1,
+      "id": "83864bcd-2745-448b-b8ce-9eb1cf567cfd",
+      "name": "Sticky Note11"
+    },
+    {
+      "parameters": {
+        "content": "## 📅 Workflow 3: Weekly Project Updates via Slack  \n\n- We loop through each record in the **All Project List** table.  \n- Only records where the **Update Ready** field = `Yes` are selected.  \n\n### 🛠️ How the Update Ready Field Works  \n- A **formula field** in Airtable checks if **7 days** have passed since the last update.  \n- If **≥ 7 days** → `Update Ready = Yes`.  \n- If **< 7 days** → `Update Ready = No`.  \n- The **IF node** in n8n filters records accordingly.  \n\n### 🚀 Update Process  \n1. For eligible projects, update the **Last Weekly Update Sent** field with today’s date.  \n2. Pass project details (Name, Scope, Tasks, Progress) to **Gemini LLM**.  \n3. Gemini generates a structured **weekly update** including:  \n   - ✅ Tasks completed  \n   - 🕑 Tasks in progress  \n   - ⏳ Pending tasks  \n   - 📊 Overall project percentage  \n4. Send the generated update message directly into the client’s **Slack channel**.  \n\n \n",
+        "height": 1008,
+        "width": 2528
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "position": [
+        -1952,
+        -400
+      ],
+      "typeVersion": 1,
+      "id": "d61b717f-a6bd-423e-8b0c-9f9c00745813",
+      "name": "Sticky Note12"
+    },
+    {
+      "parameters": {
+        "select": "channel",
+        "channelId": {
+          "__rl": true,
+          "value": "={{ $json['Slack Channel ID'] }}",
+          "mode": "id"
+        },
+        "text": "={{ $json.Message }}",
+        "otherOptions": {}
+      },
+      "type": "n8n-nodes-base.slack",
+      "typeVersion": 2.3,
+      "position": [
+        112,
+        32
+      ],
+      "id": "7575ecda-ca6b-4b78-aa2b-eae557c9a697",
+      "name": "Send Weekly Update",
+      "webhookId": "c30a1a78-3aba-445e-b909-5ad97ef09b73"
+    },
+    {
+      "parameters": {
+        "modelId": {
+          "__rl": true,
+          "value": "models/gemini-2.5-flash-preview-05-20",
+          "mode": "list",
+          "cachedResultName": "models/gemini-2.5-flash-preview-05-20"
+        },
+        "messages": {
+          "values": [
+            {
+              "content": "=You are an assistant generating a weekly project update for a client. \nHere is the project data:\n\n- Project Name: {{ $json.fields['Project Name?'] }}\n- Client Name: {{ $json.fields['Client Full Name?'] }}\n- Task Summary: {{ $json.fields['All Task Summary'] }}\n- Completed Tasks: {{ $json.fields['Completed Task'] }}\n- In Progress Tasks: {{ $json.fields['Task in Progress'] }}\n- Total Tasks: {{ $json.fields['Total Task'] }}\n- Project Completion Percentage: {{ $json.fields['Project Percentage?'] }}\n- Slack Channel ID: {{ $json.fields['Slack Channel ID'] }}\n\nGenerate a concise weekly update in professional yet friendly tone for the client. \nThe update should:\n\n1. Summarize what has been completed this week.\n2. Highlight any tasks in progress.\n3. Mention total tasks and project completion percentage.\n4. Suggest next steps or focus areas for the coming week (if applicable).\n5. Include **Client Name**, **Project Name**, and **Slack Channel ID** at the top of your response so n8n can route the message correctly.\n6. Be clear and easy for the client to read in Slack.\n\nOutput should be in plain text, ready to send in Slack.\n\nRules:\n1. Replace \"Your weekly update message here\" with the actual text of the weekly update.\n2. Include Client Name and Project Name in the message.\n3. Ensure JSON is valid so n8n can read it directly.\n4. Do not include extra text outside the JSON array.\n\nOutput Format: \n[\n  {\n    \"message\": \"Your weekly update message here including client name, project summary, completion %, etc.\",\n    \"slack_channel_id\": \"{{ $json.fields['Slack Channel ID'] }}\"\n  }\n]\n\nFew Shots Example:\nExample 1:\n[\n  {\n    \"message\": \"Hi John Doe 👋\\n\\nHere’s your weekly update for **Website Redesign Project**:\\n\\n✅ Completed Tasks: Homepage mockup and navigation redesign have been finalized.\\n🚧 In Progress: Product catalog integration is underway.\\n📊 Total Tasks: 12 | Project Completion: 45%\\n\\nNext week, we’ll focus on completing the catalog integration and start working on checkout flow improvements.\\n\\nThanks for your continued collaboration!\",\n    \"slack_channel_id\": \"{{ $json.fields['Slack Channel ID'] }}\"\n  }\n]\n\n[\n  {\n    \"message\": \"Hello Sarah Lee 👋\\n\\nHere’s this week’s progress on **Mobile App Development**:\\n\\n✅ Completed Tasks: Login/Signup flow and user profile setup.\\n🚧 In Progress: Push notification system and in-app chat.\\n📊 Total Tasks: 20 | Project Completion: 35%\\n\\nNext week, the focus will be on wrapping up notifications and kicking off the payment gateway integration.\\n\\nExcited about the momentum we’re building 🚀\",\n    \"slack_channel_id\": \"{{ $json.fields['Slack Channel ID'] }}\"\n  }\n]\n\n\n"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.googleGemini",
+      "typeVersion": 1,
+      "position": [
+        -416,
+        0
+      ],
+      "id": "bc4de5fa-57a0-436d-8cfc-2fc34357028e",
+      "name": "Generate Weekly Update "
+    },
+    {
+      "parameters": {
+        "jsCode": "// Input: items from previous node (Gemini output)\nlet output = [];\n\n// Loop through each item from Gemini\nitems.forEach(item => {\n    // Get the string with the JSON inside\n    let raw = item.json.content.parts[0].text;\n\n    // Remove ```json wrapping\n    raw = raw.replace(/```json\\s*/, '').replace(/\\s*```$/, '');\n\n    // Parse it as JSON array\n    let parsed;\n    try {\n        parsed = JSON.parse(raw);\n    } catch (err) {\n        throw new Error('Failed to parse Gemini JSON: ' + err);\n    }\n\n    // Map each object in the parsed array to n8n-friendly format\n    parsed.forEach(p => {\n        output.push({\n            json: {\n                Message: p.message,\n                \"Slack Channel ID\": p.slack_channel_id\n            }\n        });\n    });\n});\n\n// Return the properly formatted array\nreturn output;\n"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -96,
+        16
+      ],
+      "id": "a912addc-d5b3-48ae-8157-c812b4178c4d",
+      "name": "Restructured the Message"
+    },
+    {
+      "parameters": {
+        "options": {}
+      },
+      "type": "n8n-nodes-base.splitInBatches",
+      "typeVersion": 3,
+      "position": [
+        -1136,
+        0
+      ],
+      "id": "8d0252aa-d779-4e0c-acf9-5a704365633a",
+      "name": "Loop over all Records"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "id": "e7ac4a36-a3e4-4d28-a06b-6daeafcc0730",
+              "leftValue": "={{ $json['Update Ready'] }}",
+              "rightValue": "Yes",
+              "operator": {
+                "type": "string",
+                "operation": "equals",
+                "name": "filter.operator.equals"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [
+        -848,
+        16
+      ],
+      "id": "d41a69a0-9f6d-4619-a465-27641e19bd7c",
+      "name": "Check if the Weekly Update is ready or not"
+    },
+    {
+      "parameters": {
+        "operation": "update",
+        "base": {
+          "__rl": true,
+          "value": "apphS6ToxyfpgZ1qh",
+          "mode": "list",
+          "cachedResultName": "Client Onboarding System",
+          "cachedResultUrl": "https://airtable.com/apphS6ToxyfpgZ1qh"
+        },
+        "table": {
+          "__rl": true,
+          "value": "tblPZ9YBNGjWy6HFb",
+          "mode": "list",
+          "cachedResultName": "All Projects List",
+          "cachedResultUrl": "https://airtable.com/apphS6ToxyfpgZ1qh/tblPZ9YBNGjWy6HFb"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "id": "={{ $json.id }}",
+            "Last Update Sent": "={{ new Date().toLocaleDateString(\"en-US\") }}"
+          },
+          "matchingColumns": [
+            "id"
+          ],
+          "schema": [
+            {
+              "id": "id",
+              "displayName": "id",
+              "required": false,
+              "defaultMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": true
+            },
+            {
+              "id": "Client - Project",
+              "displayName": "Client - Project",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": true
+            },
+            {
+              "id": "Project Name?",
+              "displayName": "Project Name?",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": true
+            },
+            {
+              "id": "Client Full Name?",
+              "displayName": "Client Full Name?",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": true
+            },
+            {
+              "id": "Role of the Contact Person?",
+              "displayName": "Role of the Contact Person?",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": true
+            },
+            {
+              "id": "Email?",
+              "displayName": "Email?",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": true
+            },
+            {
+              "id": "Company Name?",
+              "displayName": "Company Name?",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": true
+            },
+            {
+              "id": "Start Date of Project?",
+              "displayName": "Start Date of Project?",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "dateTime",
+              "readOnly": false,
+              "removed": true
+            },
+            {
+              "id": "Deadline of Project?",
+              "displayName": "Deadline of Project?",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "dateTime",
+              "readOnly": false,
+              "removed": true
+            },
+            {
+              "id": "Budget?",
+              "displayName": "Budget?",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "number",
+              "readOnly": false,
+              "removed": true
+            },
+            {
+              "id": "Initial Deposit?",
+              "displayName": "Initial Deposit?",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "number",
+              "readOnly": false,
+              "removed": true
+            },
+            {
+              "id": "Invoice Status?",
+              "displayName": "Invoice Status?",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "options",
+              "options": [
+                {
+                  "name": "Paid",
+                  "value": "Paid"
+                },
+                {
+                  "name": "Pending",
+                  "value": "Pending"
+                }
+              ],
+              "readOnly": false,
+              "removed": true
+            },
+            {
+              "id": "Slack Channel Link",
+              "displayName": "Slack Channel Link",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": true
+            },
+            {
+              "id": "Drive Folder Link?",
+              "displayName": "Drive Folder Link?",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": true
+            },
+            {
+              "id": "Slack Channel ID",
+              "displayName": "Slack Channel ID",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": true
+            },
+            {
+              "id": "Project Status",
+              "displayName": "Project Status",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": true,
+              "removed": true
+            },
+            {
+              "id": "Phone No",
+              "displayName": "Phone No",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": true
+            },
+            {
+              "id": "VAT number",
+              "displayName": "VAT number",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": true
+            },
+            {
+              "id": "Project Objective?",
+              "displayName": "Project Objective?",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": true
+            },
+            {
+              "id": "Company Website",
+              "displayName": "Company Website",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": true
+            },
+            {
+              "id": "is_in_workspace?",
+              "displayName": "is_in_workspace?",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "boolean",
+              "readOnly": false,
+              "removed": true
+            },
+            {
+              "id": "Slack Id",
+              "displayName": "Slack Id",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": true
+            },
+            {
+              "id": "Task Table",
+              "displayName": "Task Table",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "array",
+              "readOnly": false,
+              "removed": true
+            },
+            {
+              "id": "Total Task",
+              "displayName": "Total Task",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": true,
+              "removed": true
+            },
+            {
+              "id": "Completed Task",
+              "displayName": "Completed Task",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": true,
+              "removed": true
+            },
+            {
+              "id": "Task in Progress",
+              "displayName": "Task in Progress",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": true,
+              "removed": true
+            },
+            {
+              "id": "Project Percentage?",
+              "displayName": "Project Percentage?",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": true,
+              "removed": true
+            },
+            {
+              "id": "Progress Bar",
+              "displayName": "Progress Bar",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": true,
+              "removed": true
+            },
+            {
+              "id": "Last Update Sent",
+              "displayName": "Last Update Sent",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "dateTime",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "Update Ready",
+              "displayName": "Update Ready",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": true,
+              "removed": true
+            },
+            {
+              "id": "All Task Summary",
+              "displayName": "All Task Summary",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": true,
+              "removed": true
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.airtable",
+      "typeVersion": 2.1,
+      "position": [
+        -624,
+        0
+      ],
+      "id": "b2d930f1-2173-4a82-acd4-e94fcc83f435",
+      "name": "Update Last date of weekly update sent"
+    },
+    {
+      "parameters": {
+        "amount": 2
+      },
+      "type": "n8n-nodes-base.wait",
+      "typeVersion": 1.1,
+      "position": [
+        -464,
+        240
+      ],
+      "id": "22a43977-5e57-4706-9d1b-eabb50d56ca2",
+      "name": "Wait3",
+      "webhookId": "74b8459f-53f6-4f01-ba0b-8da83bbfdcc3"
+    },
+    {
+      "parameters": {},
+      "type": "n8n-nodes-base.wait",
+      "typeVersion": 1.1,
+      "position": [
+        336,
+        32
+      ],
+      "id": "37cabc55-8e7c-4def-925e-472cea4a8b22",
+      "name": "Wait1",
+      "webhookId": "ef63d1d2-1505-4783-8cfe-e1e4925e1499"
+    },
+    {
+      "parameters": {
+        "rule": {
+          "interval": [
+            {}
+          ]
+        }
+      },
+      "type": "n8n-nodes-base.scheduleTrigger",
+      "typeVersion": 1.2,
+      "position": [
+        -1648,
+        352
+      ],
+      "id": "e4afc8a5-c597-4033-bb4a-2c52cae299c1",
+      "name": "Schedule Trigger(You can adjust it on your own)"
+    },
+    {
+      "parameters": {
+        "operation": "search",
+        "base": {
+          "__rl": true,
+          "value": "apphS6ToxyfpgZ1qh",
+          "mode": "list",
+          "cachedResultName": "Client Onboarding System",
+          "cachedResultUrl": "https://airtable.com/apphS6ToxyfpgZ1qh"
+        },
+        "table": {
+          "__rl": true,
+          "value": "tblPZ9YBNGjWy6HFb",
+          "mode": "list",
+          "cachedResultName": "All Projects List",
+          "cachedResultUrl": "https://airtable.com/apphS6ToxyfpgZ1qh/tblPZ9YBNGjWy6HFb"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.airtable",
+      "typeVersion": 2.1,
+      "position": [
+        -1440,
+        352
+      ],
+      "id": "92588d1b-db3e-44e3-874e-14ba31f62d39",
+      "name": "Search records"
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "Schedule Trigger1": {
+      "main": [
+        [
+          {
+            "node": "Get only those records which aren't in their private channel1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Loop Over Items1": {
+      "main": [
+        [],
+        [
+          {
+            "node": "Extract record id, Slack channel id and link, email, client name1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Flatten done into one single Array4": {
+      "main": [
+        [
+          {
+            "node": "Check if the user is already in the workspace or not1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Wait": {
+      "main": [
+        [
+          {
+            "node": "Loop Over Items1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Get only those records which aren't in their private channel1": {
+      "main": [
+        [
+          {
+            "node": "Loop Over Items1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Extract record id, Slack channel id and link, email, client name1": {
+      "main": [
+        [
+          {
+            "node": "Get the user Slack ID1",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Merge5",
+            "type": "main",
+            "index": 1
+          }
+        ]
+      ]
+    },
+    "Get the user Slack ID1": {
+      "main": [
+        [
+          {
+            "node": "Extract Slack ID of User1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Extract Slack ID of User1": {
+      "main": [
+        [
+          {
+            "node": "Merge5",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Merge5": {
+      "main": [
+        [
+          {
+            "node": "Flatten done into one single Array4",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Add Slack ID and flag add to the channel of the record1": {
+      "main": [
+        [
+          {
+            "node": "Merge6",
+            "type": "main",
+            "index": 2
+          }
+        ]
+      ]
+    },
+    "Add the Client To the Private Slack Channel1": {
+      "main": [
+        [
+          {
+            "node": "Post Welcome Message to Channel1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Post Welcome Message to Channel1": {
+      "main": [
+        [
+          {
+            "node": "Merge6",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Email them their Private Channel Link1": {
+      "main": [
+        [
+          {
+            "node": "Merge6",
+            "type": "main",
+            "index": 1
+          }
+        ]
+      ]
+    },
+    "Check if the user is already in the workspace or not1": {
+      "main": [
+        [
+          {
+            "node": "Add the Client To the Private Slack Channel1",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Email them their Private Channel Link1",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Add Slack ID and flag add to the channel of the record1",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Remind Client to join the workspace",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Flatten done into one single Array5": {
+      "main": [
+        [
+          {
+            "node": "Loop Over Items1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Merge6": {
+      "main": [
+        [
+          {
+            "node": "Flatten done into one single Array5",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Remind Client to join the workspace": {
+      "main": [
+        [
+          {
+            "node": "Wait",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Send Weekly Update": {
+      "main": [
+        [
+          {
+            "node": "Wait1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Generate Weekly Update ": {
+      "main": [
+        [
+          {
+            "node": "Restructured the Message",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Restructured the Message": {
+      "main": [
+        [
+          {
+            "node": "Send Weekly Update",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Loop over all Records": {
+      "main": [
+        [],
+        [
+          {
+            "node": "Check if the Weekly Update is ready or not",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Check if the Weekly Update is ready or not": {
+      "main": [
+        [
+          {
+            "node": "Update Last date of weekly update sent",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Wait3",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Update Last date of weekly update sent": {
+      "main": [
+        [
+          {
+            "node": "Generate Weekly Update ",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Wait3": {
+      "main": [
+        [
+          {
+            "node": "Loop over all Records",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Wait1": {
+      "main": [
+        [
+          {
+            "node": "Loop over all Records",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Schedule Trigger(You can adjust it on your own)": {
+      "main": [
+        [
+          {
+            "node": "Search records",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Search records": {
+      "main": [
+        [
+          {
+            "node": "Loop over all Records",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "versionId": "171f9d76-3720-4f6d-bb23-7899102f69a8",
+  "meta": {
+    "instanceId": "533fe5175031be2920b57ac9a77dfa7c0297e32aee4cfa537612cab3b1e61491"
+  },
+  "id": "rlDpdxITgGaTNa4p",
+  "tags": []
+}
