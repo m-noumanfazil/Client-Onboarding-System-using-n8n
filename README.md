@@ -20,3 +20,32 @@ A simple Client Onboarding System designed to automate the entire onboarding pro
 - **Airtable** – Client data storage and management  
 - **Typeform** – Client input forms
 - **Slack** – For client's private channel
+
+## Setup: API Keys & Credentials
+
+Before running the workflow, you'll need to get the following API keys:
+
+- **Typeform API Key**  
+  - Available from your [Typeform account](https://www.typeform.com/account/settings) after you create an Account.  
+  - Copy it to the n8n credentials section.
+
+- **Airtable API Key**  
+  - Obtain from your [Airtable account](https://airtable.com/account).  
+  - Add your base ID and table names in n8n.  
+  - For a detailed walkthrough, check this YouTube Video: https://youtu.be/64HO3Dlr5T8?si=vLReDu5Mha-nU7Q5
+
+- **Gmail / Google Workspace API Key**  
+  - Get credentials from [Google Cloud Console](https://console.cloud.google.com/apis/credentials).  
+  - Create OAuth 2.0 client ID and enable Gmail API.  
+  - Paste credentials into n8n Gmail node.
+
+- **Slack API Key**  
+  - Create a Slack App and Bot via [Slack API](https://api.slack.com/apps).  
+  - Give the bot the required permissions (chat:write, channels:manage, etc.).  
+  - Copy the Bot Token into the n8n Slack node.  
+  - For a visual guide, see this YouTube tutorial:https://www.youtube.com/watch?v=qk5JH6ImK0I
+
+- **Gemini AI API Key**  
+  - Get it from your [Gemini AI Studio account](https://gemini.ai/studio).  
+  - Paste the key in n8n credentials to use AI functions.
+
