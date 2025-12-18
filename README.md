@@ -49,3 +49,19 @@ Before running the workflow, you'll need to get the following API keys:
   - Get it from your [Gemini AI Studio account](https://gemini.ai/studio).  
   - Paste the key in n8n credentials to use AI functions.
 
+## Running the Workflow
+
+1. **Sign up for n8n**  
+   - Create a free account at [n8n.io](https://n8n.io/).
+
+2. **Import the workflow JSON**  
+   - Download all workflow `.json` files from this repo.  
+   - In your n8n dashboard, go to **Workflow → Import** and paste/upload the JSON files.
+
+3. **Connect credentials**  
+   - Make sure all API keys (Typeform, Airtable, Gmail, Slack, Gemini AI) are added in the n8n credentials section.  
+   - Without these, the workflow won’t run.
+
+4. **Activate the workflow**  
+   - Toggle the workflow **ON** to start automated client onboarding.  
+   - Test it by submitting a sample Typeform entry to see the automation in action.
